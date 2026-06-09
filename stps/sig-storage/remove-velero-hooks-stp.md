@@ -17,7 +17,7 @@
 
 ### **Feature Overview**
 
-Cluster administrators can now control or disable the automatic Velero pre- and post-backup hooks that freeze and unfreeze VM filesystems during backups. Previously, these hooks ran automatically on every Velero backup, executing freeze and unfreeze operations regardless of VM state or guest agent health. With this feature, administrators can opt out of hook execution per VM or cluster-wide, allowing backup operations to proceed without unnecessary hook execution.
+Cluster administrators can now control or disable the automatic Velero pre- and post-backup hooks that freeze and unfreeze VM filesystems during backups. Previously, these hooks ran automatically on every Velero backup, executing freeze and unfreeze operations regardless of VM state or guest agent health. This caused backup failures for paused VMs and environments where the guest agent was unavailable or misconfigured. With this feature, administrators can opt out of hook execution per VM or cluster-wide via a simple annotation, giving them granular control over backup behavior without requiring VM restarts. This reduces failed backups, avoids unnecessary guest-agent operations, and improves overall backup reliability for OpenShift Virtualization workloads.
 
 ---
 
@@ -170,7 +170,7 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
 
 #### **3. Test Environment**
 
-- **Cluster Topology:** Standard (3-master/3-worker bare-metal)
+- **Cluster Topology:** Standard (3-master/3-worker)
 - **OCP & OpenShift Virtualization Version(s):** OCP 4.22 with OpenShift Virtualization 4.22
 - **CPU Virtualization:** Standard
 - **Compute Resources:** Standard
