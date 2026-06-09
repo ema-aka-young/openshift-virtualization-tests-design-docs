@@ -97,7 +97,6 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
 - **[P0]** As a cluster administrator, I want to verify that a per-VM opt-out setting takes precedence over the cluster-wide setting.
 - **[P0]** As a cluster administrator, I want to verify that a Velero backup of a paused VM completes without executing freeze/unfreeze hooks when hooks are disabled.
 - **[P0]** As a cluster administrator, I want to verify that a full Velero backup and restore workflow completes successfully with hooks disabled.
-- **[P0]** As a cluster administrator, I want to verify that invalid opt-out values are treated as disabled (hooks remain active).
 - **[P1]** As a cluster administrator, I want to verify that a Velero backup of a paused VM attempts freeze/unfreeze hooks by default.
 
 **Out of Scope (Testing Scope Exclusions)**
@@ -202,19 +201,16 @@ The following conditions must be met before testing can begin:
   - Mitigation: No risk. Feature is already merged upstream and backported.
 
 - [x] **Test Coverage**
-  - Risk: Guest agent unavailability scenario is not covered due to test limitations (see Section II.1).
-  - Mitigation: The opt-out mechanism does not depend on guest agent state. Coverage from the paused VM and default behavior scenarios validates the same opt-out code path. Residual risk is low.
+  - Risk: Guest agent unavailability scenario is not directly testable — standard VM images include a functioning guest agent, and there is no reliable way to simulate its absence (see Test Limitations in Section II.1).
+  - Mitigation: The opt-out mechanism controls hook injection identically regardless of guest agent state. The paused VM and default behavior scenarios exercise the same opt-out code path, providing equivalent coverage. Residual risk is low.
   - *Areas with reduced coverage:* Guest agent unavailability scenario.
   - *Sign-off:* Emanuele Prella/28-05-2026
 
 - [ ] **Test Environment**
   - Mitigation: No risk. Standard cluster with OADP operator, already available in existing test infrastructure.
 
-- [x] **Untestable Aspects**
-  - Risk: Guest agent unavailability cannot be reliably simulated.
-  - Mitigation: The opt-out setting controls hook injection identically regardless of guest agent state. This behavior is validated through the paused VM and default behavior scenarios, which exercise the same opt-out mechanism.
-  - *Alternative validation approach:* Paused VM and default behavior scenarios exercise the same opt-out code path as the guest agent unavailability scenario.
-  - *Sign-off:* Emanuele Prella/28-05-2026
+- [ ] **Untestable Aspects**
+  - Mitigation: No additional untestable aspects beyond the guest agent unavailability scenario documented under Test Coverage above.
 
 - [ ] **Resource Constraints**
   - Mitigation: No risk. Feature scope is small and test count is manageable.
@@ -237,10 +233,6 @@ Scenarios trace to epic [CNV-79727](https://redhat.atlassian.net/browse/CNV-7972
 
 - **[CNV-79727]** — As a cluster administrator, I want per-VM opt-out to take precedence over the cluster-wide setting
   - *Test Scenario:* [Tier 1] Configure the cluster to opt out of backup hooks. Deploy a VM that explicitly keeps hooks enabled. Confirm backup hooks are active on that VM despite the cluster-wide opt-out. (Upstream — kubevirt functional tests)
-  - *Priority:* P0
-
-- **[CNV-79727]** — As a cluster administrator, I want invalid opt-out values to default to the safe behavior (hooks enabled)
-  - *Test Scenario:* [Tier 1] Set the opt-out setting to invalid values. Confirm backup hooks remain active (invalid input treated as disabled). (Upstream — kubevirt functional tests)
   - *Priority:* P0
 
 - **[CNV-79727]** — As a cluster administrator, I want Velero backups of paused VMs to complete without executing freeze/unfreeze hooks when hooks are disabled
