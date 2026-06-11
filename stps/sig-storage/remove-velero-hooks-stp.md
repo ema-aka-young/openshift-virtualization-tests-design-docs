@@ -66,7 +66,7 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
     - **UI:** No UI changes. Feature is annotation-driven via CLI/API and UI testing doesn't add any customer value. Pending PM/UX confirmation. See "Out of Scope (Testing Scope Exclusions) - UI testing for hook opt-out configuration"
     - **Security:** No RBAC changes — uses existing VM/KubeVirt CR edit permissions.
     - **Performance:** No performance impact.
-    - **Scalability:** Cluster-wide toggle propagates to all VMs; upstream tests validate this at scale.
+    - **Scalability:** Cluster-wide toggle propagates to all VMs via standard KubeVirt reconciliation. No documented scale limits.
     - **Documentation:** Upstream docs updated in PR.
   - *Note any NFRs not covered and why:* None
 
