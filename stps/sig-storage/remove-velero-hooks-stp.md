@@ -62,7 +62,7 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
   - *List applicable NFRs and their targets:*
     - **Monitoring:** No new metrics or alerts — the feature is a simple annotation toggle.
     - **UI:** No UI changes. Feature is annotation-driven via CLI/API and UI testing doesn't add any customer value. See "Out of Scope (Testing Scope Exclusions) - UI testing for hook opt-out configuration"
-    PM LGTM: Peter Lauterbach/06-16-2026
+    PM LGTM: Peter Lauterbach/16-06-2026
     - **Security:** No RBAC changes — uses existing VM/KubeVirt CR edit permissions.
     - **Performance:** No performance impact.
     - **Scalability:** Cluster-wide toggle propagates to all VMs via standard KubeVirt reconciliation. No documented scale limits.
@@ -72,10 +72,10 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
 #### **2. Known Limitations**
 
 - The opt-out setting only controls Velero backup hook injection; it does not affect other backup mechanisms.
-  - *Sign-off:* Peter Lauterbach/06-16-2026
+  - *Sign-off:* Peter Lauterbach/16-06-2026
 
 - Changing the cluster-wide opt-out setting triggers reconciliation of all running VMs, which may cause a brief processing spike in large environments.
-  - *Sign-off:* Peter Lauterbach/06-16-2026
+  - *Sign-off:* Peter Lauterbach/16-06-2026
 
 #### **3. Technology and Design Review**
 
@@ -111,15 +111,15 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
 
 - **Backup of a VM in provisioning state (no running pod)**
   - *Rationale:* When a VM is still provisioning, no backup hooks are present regardless of the opt-out setting. The opt-out annotation does not change behavior in this case — the backup outcome is the same with or without it.
-  - *PM/Lead Agreement:* Peter Lauterbach/06-16-2026
+  - *PM/Lead Agreement:* Peter Lauterbach/16-06-2026
 
 - **Windows VM-specific testing of hook opt-out**
   - *Rationale:* The opt-out annotation controls whether backup hooks are injected, independent of the guest operating system. The behavior is identical for Linux and Windows VMs. Windows backup/restore is already covered by existing OADP tests.
-  - *PM/Lead Agreement:* Peter Lauterbach/06-16-2026
+  - *PM/Lead Agreement:* Peter Lauterbach/16-06-2026
 
 - **UI testing for hook opt-out configuration**
-  - *Rationale:* The feature is annotation-driven via CLI/API with no UI components. Pending PM/UX confirmation that no UI coverage is needed based on customer value assessment.
-  - *PM/Lead Agreement:* Peter Lauterbach/06-16-2026
+  - *Rationale:* The feature is annotation-driven via CLI/API with no UI components. PM confirmed no UI coverage is needed based on customer value assessment.
+  - *PM/Lead Agreement:* Peter Lauterbach/16-06-2026
 
 **Test Limitations**
 
@@ -152,7 +152,7 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
   - *Details:* N/A. No new RBAC, auth, or authorization changes. Uses existing VM/KubeVirt CR permissions.
 
 - [ ] **Usability Testing** — Validates user experience and accessibility requirements
-  - *Details:* N/A. No UI changes. Feature is annotation-driven via CLI/API and UI testing doesn't add any customer value. Pending PM/UX confirmation. See "Out of Scope (Testing Scope Exclusions) - UI testing for hook opt-out configuration"
+  - *Details:* N/A. Feature is annotation-driven via CLI/API — PM confirmed UI/usability testing adds no customer value (Peter Lauterbach/16-06-2026). See "Out of Scope (Testing Scope Exclusions) - UI testing for hook opt-out configuration"
 
 - [ ] **Monitoring** — Does the feature require metrics and/or alerts?
   - *Details:* N/A. No new metrics or alerts introduced.
