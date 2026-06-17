@@ -27,13 +27,13 @@
 
 ### **Feature Overview**
 
-Cluster administrators can now control or disable the automatic Velero pre- and post-backup hooks that freeze and unfreeze VM filesystems during backups. Previously, these hooks ran automatically on every Velero backup, executing freeze and unfreeze operations regardless of VM state or guest agent health. This caused backup failures for paused VMs and environments where the guest agent was unavailable or misconfigured. With this feature, administrators can opt out of hook execution per VM or cluster-wide via a simple annotation, giving them granular control over backup behavior without requiring VM restarts. This reduces failed backups, avoids unnecessary guest-agent operations, and improves overall backup reliability for OpenShift Virtualization workloads.
+Cluster administrators can now control or disable the automatic Velero pre- and post-backup hooks that freeze and unfreeze VM filesystems during backups. Previously, these hooks ran automatically on every Velero backup, executing freeze and unfreeze operations regardless of whether those operations were needed. With this feature, administrators can opt out of hook execution per VM or cluster-wide via a simple annotation, giving them granular control over backup behavior without requiring VM restarts. This avoids unnecessary guest-agent operations and improves overall backup reliability for OpenShift Virtualization workloads.
 
 ---
 
 ### **I. Motivation and Requirements Review (QE Review Guidelines)**
 
-**Motivation:** Velero backup hooks automatically freeze and unfreeze VM filesystems during backups, but they execute unnecessary operations when the VM is paused or the guest agent is unavailable. Customers need the ability to disable these hooks so that backup operations proceed without depending on guest agent availability or VM state.
+**Motivation:** Velero backup hooks automatically freeze and unfreeze VM filesystems during backups, but these operations are not always needed and may be undesirable in certain environments. Customers need the ability to disable these hooks to avoid unnecessary filesystem freeze/unfreeze operations during backups.
 
 #### **1. Requirement & User Story Review Checklist**
 
@@ -41,11 +41,10 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
   - *List the key D/S requirements reviewed:* Reviewed CNV-75370 and upstream issue kubevirt/kubevirt#14056. The feature adds an opt-out annotation to disable Velero freeze/unfreeze hooks on VMs.
 
 - [x] **Understand Value and Customer Use Cases**
-  - *Describe the feature's value to customers:* Customers running Velero backups encounter failures when VMs are paused, guest agents are misconfigured, or VMs are in provisioning state. This feature unblocks those backup workflows.
+  - *Describe the feature's value to customers:* Velero backup hooks execute filesystem freeze/unfreeze operations that are not always needed and may be undesirable in certain environments. This feature gives administrators control over hook execution.
   - *List the customer use cases identified:*
     - **UC1:** As a cluster administrator, I want to disable Velero backup hooks on specific VMs so that backups succeed even when the guest agent is unavailable.
     - **UC2:** As a cluster administrator, I want to disable hooks cluster-wide so that metadata-only backups proceed without filesystem freezes.
-    - **UC3:** As a cluster administrator, I want backup operations to succeed for paused VMs.
 
 - [x] **Testability**
   - *Note any requirements that are unclear or untestable:* Guest agent unavailability cannot be reliably simulated with standard VM images (see Test Limitations in Section II.1). All other requirements are testable. Backup hook behavior is observable through Velero backup outcomes.
@@ -56,14 +55,14 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
     - **AC2:** When no opt-out annotation is set, Velero backup operations attempt filesystem freeze/unfreeze as before.
     - **AC3:** Setting the annotation cluster-wide disables hooks for all VMs that do not explicitly override it.
     - **AC4:** Adding or removing the annotation takes effect on running VMs without requiring a restart.
-    - **AC5:** Velero backups of paused VMs complete without executing freeze/unfreeze hooks when hooks are disabled.
-    - **AC6:** When no opt-out annotation is set, Velero backups of paused VMs attempt freeze/unfreeze hooks.
-  - *Note any gaps or missing criteria:* UC1 (guest agent unavailability) is not directly testable — see Test Limitations in Section II.1. The opt-out behavior is validated through the paused VM and default behavior scenarios, which exercise the same code path.
+    - **AC5:** The opt-out annotation is honored when a VM is paused, confirming hooks are not injected regardless of VM state.
+  - *Note any gaps or missing criteria:* UC1 (guest agent unavailability) is not directly testable — see Test Limitations in Section II.1.
 
 - [x] **Non-Functional Requirements (NFRs)**
   - *List applicable NFRs and their targets:*
     - **Monitoring:** No new metrics or alerts — the feature is a simple annotation toggle.
-    - **UI:** No UI changes. Feature is annotation-driven via CLI/API and UI testing doesn't add any customer value. Pending PM/UX confirmation. See "Out of Scope (Testing Scope Exclusions) - UI testing for hook opt-out configuration"
+    - **UI:** No UI changes. Feature is annotation-driven via CLI/API and UI testing doesn't add any customer value. See "Out of Scope (Testing Scope Exclusions) - UI testing for hook opt-out configuration"
+    PM LGTM: Peter Lauterbach/06-16-2026
     - **Security:** No RBAC changes — uses existing VM/KubeVirt CR edit permissions.
     - **Performance:** No performance impact.
     - **Scalability:** Cluster-wide toggle propagates to all VMs via standard KubeVirt reconciliation. No documented scale limits.
@@ -73,10 +72,10 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
 #### **2. Known Limitations**
 
 - The opt-out setting only controls Velero backup hook injection; it does not affect other backup mechanisms.
-  - *Sign-off:* TBD
+  - *Sign-off:* Peter Lauterbach/06-16-2026
 
 - Changing the cluster-wide opt-out setting triggers reconciliation of all running VMs, which may cause a brief processing spike in large environments.
-  - *Sign-off:* TBD
+  - *Sign-off:* Peter Lauterbach/06-16-2026
 
 #### **3. Technology and Design Review**
 
@@ -84,7 +83,7 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
   - *Key takeaways and concerns:* Reviewed upstream PR kubevirt/kubevirt#16786 (merged Feb 2026). Implementation uses an opt-out annotation rather than a new API field to avoid feature-freeze constraints.
 
 - [x] **Technology Challenges**
-  - *List identified challenges:* Tier 2 tests require OADP operator and a functional Velero installation. Paused VM scenario needs specific test setup.
+  - *List identified challenges:* Tier 2 tests require OADP operator and a functional Velero installation.
   - *Impact on testing approach:* Standard OADP test infrastructure from existing data_protection test suite will be reused.
 
 - [x] **API Extensions**
@@ -106,23 +105,21 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
 
 - **[P0]** As a cluster administrator, I want to verify that backup hooks are present by default and that the cluster-wide opt-out dynamically adds and removes them on running VMs without requiring a restart.
 - **[P0]** As a cluster administrator, I want to verify that a per-VM opt-out setting takes precedence over the cluster-wide setting.
-- **[P0]** As a cluster administrator, I want to verify that a Velero backup of a paused VM completes without executing freeze/unfreeze hooks when hooks are disabled.
+- **[P0]** As a cluster administrator, I want to verify that the opt-out annotation is honored for a paused VM, confirming hooks are not injected regardless of VM state.
 - **[P0]** As a cluster administrator, I want to verify that a full Velero backup and restore workflow completes successfully with hooks disabled.
-- **[P1]** As a cluster administrator, I want to verify that a Velero backup of a paused VM attempts freeze/unfreeze hooks by default.
-
 **Out of Scope (Testing Scope Exclusions)**
 
 - **Backup of a VM in provisioning state (no running pod)**
   - *Rationale:* When a VM is still provisioning, no backup hooks are present regardless of the opt-out setting. The opt-out annotation does not change behavior in this case — the backup outcome is the same with or without it.
-  - *PM/Lead Agreement:* [Name/Date]
+  - *PM/Lead Agreement:* Peter Lauterbach/06-16-2026
 
 - **Windows VM-specific testing of hook opt-out**
   - *Rationale:* The opt-out annotation controls whether backup hooks are injected, independent of the guest operating system. The behavior is identical for Linux and Windows VMs. Windows backup/restore is already covered by existing OADP tests.
-  - *PM/Lead Agreement:* [Name/Date]
+  - *PM/Lead Agreement:* Peter Lauterbach/06-16-2026
 
 - **UI testing for hook opt-out configuration**
   - *Rationale:* The feature is annotation-driven via CLI/API with no UI components. Pending PM/UX confirmation that no UI coverage is needed based on customer value assessment.
-  - *PM/Lead Agreement:* [Name/Date]
+  - *PM/Lead Agreement:* Peter Lauterbach/06-16-2026
 
 **Test Limitations**
 
@@ -213,7 +210,7 @@ The following conditions must be met before testing can begin:
 
 - [x] **Test Coverage**
   - Risk: Guest agent unavailability scenario is not directly testable — standard VM images include a functioning guest agent, and there is no reliable way to simulate its absence (see Test Limitations in Section II.1).
-  - Mitigation: The opt-out mechanism controls hook injection identically regardless of guest agent state. The paused VM and default behavior scenarios exercise the same opt-out code path, providing equivalent coverage. Residual risk is low.
+  - Mitigation: The opt-out mechanism controls hook injection identically regardless of guest agent state. The default behavior and opt-out scenarios exercise the same code path, providing equivalent coverage. Residual risk is low.
   - *Areas with reduced coverage:* Guest agent unavailability scenario.
   - *Sign-off:* Emanuele Prella/28-05-2026
 
@@ -246,17 +243,13 @@ Scenarios trace to epic [CNV-79727](https://redhat.atlassian.net/browse/CNV-7972
   - *Test Scenario:* [Tier 1] Configure the cluster to opt out of backup hooks. Deploy a VM that explicitly keeps hooks enabled. Confirm backup hooks are active on that VM despite the cluster-wide opt-out. (Upstream — kubevirt functional tests)
   - *Priority:* P0
 
-- **[CNV-79727]** — As a cluster administrator, I want Velero backups of paused VMs to complete without executing freeze/unfreeze hooks when hooks are disabled
+- **[CNV-79727]** — As a cluster administrator, I want to verify that the opt-out annotation is honored for a paused VM, confirming hooks are not injected regardless of VM state
   - *Test Scenario:* [Tier 2] Deploy a VM configured to opt out of backup hooks and pause it. Run a Velero backup. Confirm no hooks were attempted and the backup completed successfully.
   - *Priority:* P0
 
 - **[CNV-79727]** — As a cluster administrator, I want to perform a full backup and restore with hooks disabled
   - *Test Scenario:* [Tier 2] Deploy a running VM with a per-VM opt-out annotation disabling backup hooks. Run a Velero backup. Delete the VM and its namespace. Restore from backup. Confirm the VM is running. Data integrity is not verified because freeze hooks are skipped.
   - *Priority:* P0
-
-- **[CNV-79727]** — As a cluster administrator, I want to confirm that Velero backups of paused VMs attempt freeze/unfreeze hooks by default
-  - *Test Scenario:* [Tier 2] Deploy a VM and pause it. Run a Velero backup without opt-out. Confirm the backup completed successfully with hooks attempted.
-  - *Priority:* P1
 
 ---
 
@@ -265,7 +258,7 @@ Scenarios trace to epic [CNV-79727](https://redhat.atlassian.net/browse/CNV-7972
 This Software Test Plan requires approval from the following stakeholders:
 
 * **Reviewers:**
-  - Development Representative (OCP-V): [Alvaro Romero](@alromeros)
+  - Development Representative (OCP-V): [Alvaro Romero](@alromeros), [Noam Assouline](@noamasu)
   - QE Members (OCP-V): [Dalia Frank](@dafrank), [Kateryna Shvaika](@kshvaika), [Jose Manuel Castano](@josemacassan), [Ahmad Hafe](@Ahmad-Hafe), [Jenia Peimer](@jpeimer)
 * **Approvers:**
   - QE Architect (OCP-V): [Ruth Netser](@rnetser)
