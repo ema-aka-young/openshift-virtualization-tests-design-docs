@@ -237,11 +237,11 @@ No verification activities will be performed for these items, and any related is
 
 **Non-Functional**
 
-- [ ] **Performance Testing** — Validates feature performance meets requirements (latency, throughput, resource usage)
+- [x] **Performance Testing** — Validates feature performance meets requirements (latency, throughput, resource usage)
   - *Details:* N/A for Dev Preview. No performance targets defined. Will be addressed in TP/GA phases.
 
-- [ ] **Scale Testing** — Validates feature behavior under increased load and at production-like scale
-  - *Details:* N/A for Dev Preview. Concurrent restore prevention is tested as a functional requirement.
+- [x] **Scale Testing** — Validates feature behavior under increased load and at production-like scale
+  - *Details:* No formal scale targets for Dev Preview. Concurrent restore prevention on the same VM is tested as a functional requirement. Basic multi-VM concurrency (two VMs restoring in parallel) is validated as a Tier 3 scenario to confirm the operator handles independent parallel operations.
 
 - [x] **Security Testing** — Verifies security requirements, RBAC, authentication, authorization, and vulnerability scanning
   - *Details:* Validate RBAC roles (admin/editor/viewer) for file restore operations. Verify guest access is restricted to authorized restore commands only.
@@ -320,7 +320,7 @@ The following conditions must be met before testing can begin:
 
 - **Risk:** Dev Preview implementation stories (CNV-88322, CNV-88323, CNV-88324) are still in progress; test automation (CNV-90681) has not started
   - **Mitigation:** Align test development with implementation milestones. Start test framework setup and stub generation in parallel with ongoing development.
-  - *Estimated impact on schedule:* 2-3 sprint delay possible if implementation stories extend
+  - *Estimated impact on schedule:* Possible delay if implementation stories extend
   - *Sign-off:* TBD
 
 **Test Coverage**
@@ -348,7 +348,6 @@ The following conditions must be met before testing can begin:
 
 - **Risk:** New standalone operator requires QE ramp-up on vm-file-restore-operator codebase, CRD design, and guest helper scripts
   - **Mitigation:** QE spike (CNV-86827) already completed. Leverage upstream e2e tests as reference for downstream test development.
-  - *Current capacity gaps:* Single QE owner assigned; ramp-up on new operator codebase in progress
   - *Sign-off:* TBD
 
 **Dependencies**
