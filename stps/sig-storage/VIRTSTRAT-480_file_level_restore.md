@@ -527,8 +527,9 @@ The following conditions must be met before testing can begin:
 This Software Test Plan requires approval from the following stakeholders:
 
 * **Reviewers:**
-  - [TBD / @github-username]
-  - [TBD / @github-username]
+  - Development Representative (OCP-V): [Arnon Gilboa](@arnongilboa), [Noam Assouline](@noamasu)
+  - QE Members (OCP-V): [Dalia Frank](@dafrank), [Kateryna Shvaika](@kshvaika), [Jose Manuel Castano](@josemacassan), [Ahmad Hafe](@Ahmad-Hafe), [Jenia Peimer](@jpeimer)
 * **Approvers:**
-  - [TBD / @github-username]
-  - [TBD / @github-username]
+  - QE Architect (OCP-V): [Ruth Netser](@rnetser)
+  - QE Member (OCP-V): [Jenia Peimer](@jpeimer)
+  - PM: [Peter Lauterbach](@peterclauterbach)
