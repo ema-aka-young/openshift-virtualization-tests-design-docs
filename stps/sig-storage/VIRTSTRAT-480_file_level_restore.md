@@ -70,7 +70,7 @@ technology, and testability before formal test planning.
     - Data protection partners can restore single files or a subset of user data into a VM
     - Users do not need to restore an entire VM to recover a small set of files
     - Backup vendor can trigger file-level restore from a backup PVC
-    - VM Admin/User can restore specific files/directories from a VolumeSnapshot into a running VM without interrupting the VM's availability
+    - VM Admin/User can restore specific files/directories from a VolumeSnapshot into a running VM without interrupting the VM's availability — the VM remains network-reachable and guest-responsive throughout the restore operation (no reboot, no pause)
     - Guest OS auto-detection correctly identifies Linux vs Windows and selects appropriate restore method
     - Automatic restore mode: user specifies files to restore, system restores them and cleans up all temporary resources
     - Manual restore mode: backup is made available read-only in the guest, user copies files interactively, cleanup occurs when the restore request is removed
@@ -86,10 +86,13 @@ technology, and testability before formal test planning.
     - Security: Credentials used for guest access are generated per-operation and cleaned up after completion
     - Security: Guest helper scripts prevent command injection
     - Usability: Clear error reporting through restore status and events
-    - Monitoring: Operator exposes standard reconciliation metrics via secure endpoint. No custom alerts or feature-specific metrics defined for Dev Preview.
+    - UI: No UI changes introduced; feature is API-only. Confirmed with PM that no console integration is planned for Dev Preview.
+    - Monitoring/Observability: Operator exposes standard reconciliation metrics via secure endpoint. No custom alerts or feature-specific metrics defined for Dev Preview.
+    - Docs: User-facing documentation for the file restore API and guest helper setup will be validated as part of Dev Preview delivery.
   - *Note any NFRs not covered and why:*
     - Performance: No latency/throughput targets defined for Dev Preview
     - Scale: No concurrent restore limits defined beyond "parallel restores of same VM not supported"
+    - Portability: No cloud-specific requirements for Dev Preview; will be evaluated for TP/GA
 
 #### **2. Known Limitations**
 
@@ -182,7 +185,7 @@ to a future release under CNV-89229.
 - [P2] Verify restore succeeds when the source volume's storage mode differs from the cluster default
 - [P2] Verify restore from an LVM-based snapshot handles volume identifier collisions correctly
 - [P2] Verify concurrent restore prevention rejects a second simultaneous restore to the same VM
-- [P2] Verify paths with formatting variations (trailing slashes, double slashes) are handled correctly during restore
+- [P2] Verify paths with formatting variations (trailing slashes, double slashes) are handled correctly during restore on Linux (ext4, XFS) and Windows (NTFS) guests
 - [P2] Verify the system handles guest connection loss during file transfer gracefully with partial completion status
 - [P2] Verify operator upgrade preserves existing restore resources and their status
 - [P2] Verify manual file browsing mode works on a Windows VM with NTFS backup volumes
