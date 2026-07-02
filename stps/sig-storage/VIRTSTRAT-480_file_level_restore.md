@@ -166,7 +166,7 @@ to a future release under CNV-89229.
 - [P0] Verify a backup vendor can restore files from a backup volume into a running Linux VM with file integrity preserved (size, ownership, permissions)
 - [P0] Verify a VM user can restore files from a volume snapshot into a running VM without interrupting the VM's availability
 - [P0] Verify manual restore mode provides read-only access to backup contents and the system cleans up when the restore request is removed
-- [P0] Verify the system correctly detects whether a VM runs Linux or Windows and selects the appropriate restore method
+- [P0] Verify the system correctly detects whether a VM runs Linux or Windows and completes the restore using the detected OS settings
 - [P0] Verify the system reports clear, actionable errors when a restore operation fails at any stage
 - [P0] Verify temporary resources created during restore are cleaned up after the operation completes
 - [P0] Verify the system rejects invalid restore requests with clear validation errors
@@ -388,8 +388,8 @@ The following conditions must be met before testing can begin:
   - *Test Scenario:* [Tier 1] Verify backup is made available read-only in the guest, user can copy files interactively, and cleanup occurs when the restore request is removed
   - *Priority:* P0
 
-- **[CNV-88322]** — As a VM user, I want the system to detect my guest OS and select the appropriate restore method automatically
-  - *Test Scenario:* [Tier 1] Verify the system detects Linux vs Windows guest and selects the correct restore method
+- **[CNV-88322]** — As a VM user, I want the system to detect my guest OS and complete the restore automatically
+  - *Test Scenario:* [Tier 1] Verify the system detects Linux vs Windows guest and completes the restore using the detected OS settings
   - *Priority:* P0
 
 - **[CNV-88322]** — As a VM user, I want clear error feedback when a restore fails during volume attachment
