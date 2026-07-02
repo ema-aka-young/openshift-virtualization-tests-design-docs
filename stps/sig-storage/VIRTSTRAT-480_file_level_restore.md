@@ -14,8 +14,8 @@
   - [CNV-89229](https://issues.redhat.com/browse/CNV-89229) - File-Level Restore: API extensions and support encryption
 - **Feature Maturity:**
   - DP: CNV 5.0.0
-  - TP: TBD
-  - GA: TBD
+  - TP: N/A
+  - GA: N/A
 - **QE Owner(s):** Emanuele Prella
 - **Owning SIG:** sig-storage
 - **Participating SIGs:** sig-compute (hotplug integration)
@@ -83,7 +83,7 @@ technology, and testability before formal test planning.
 - [x] **Non-Functional Requirements (NFRs)**
   - *List applicable NFRs and their targets:*
     - Security: Restore operations use authenticated, restricted guest access with dedicated user and RBAC roles (admin/editor/viewer)
-    - Security: Credentials used for guest access are generated per-operation and cleaned up after completion
+    - Security: Guest access currently uses a single SSH key pair (not per-operation); planned improvement to SSH certificates with TTL for TP/GA
     - Security: Guest helper scripts prevent command injection
     - Usability: Clear error reporting through restore status and events
     - UI: No UI changes introduced; feature is API-only. Confirmed with PM that no console integration is planned for Dev Preview. See Section "II - Out of Scope".
@@ -109,9 +109,11 @@ technology, and testability before formal test planning.
   - *PM Sign-off:* [TBD]
 
 - **Guest helper script must be pre-installed in the VM; the operator does not install it automatically**
+  - Basic setup scripts are provided upstream covering both guest helper installation and SSH configuration with the `filerestore` user.
   - *PM Sign-off:* [TBD]
 
 - **SSH access must be configured on the VM with the `filerestore` user; the operator does not configure guest SSH automatically**
+  - See setup scripts above.
   - *PM Sign-off:* [TBD]
 
 #### **3. Technology and Design Review**
@@ -129,7 +131,7 @@ technology, and testability before formal test planning.
     - XFS snapshot mounting requires special options to avoid filesystem identifier collisions
     - LVM-based volume snapshots have identifier collision issues that need explicit handling
     - Storage mode mismatches between snapshot sources and cluster defaults can cause restore failures, requiring tests across different storage configurations
-    - Windows guest connectivity support for guest helper execution
+    - Windows guest connectivity requires OpenSSH Server, which is available as an optional feature (not preinstalled) on Windows 10/11/Server 2019/2022. Test VM images must have OpenSSH Server enabled and configured.
   - *Impact on testing approach:* Tests must cover multiple filesystem types (ext4, XFS), storage backends (Ceph, LVM), and both Linux and Windows guest OS variants. Test VMs must have guest helper scripts pre-installed.
 
 - [x] **API Extensions**
@@ -141,8 +143,8 @@ technology, and testability before formal test planning.
   - *See environment requirements in Section II.3 and testing tools in Section II.3.1*
 
 - [x] **Topology Considerations**
-  - *Describe topology requirements:* Multi-node cluster required for hotplug volume attachment. Cross-namespace PVC restore requires namespace-level RBAC verification.
-  - *Impact on test design:* Tests must run on multi-node clusters with VolumeSnapshot support enabled. Cross-namespace tests require additional namespace setup and RBAC configuration.
+  - *Describe topology requirements:* No multi-node requirement. Cross-namespace PVC restore requires namespace-level RBAC verification.
+  - *Impact on test design:* Tests require VolumeSnapshot support enabled. Cross-namespace tests require additional namespace setup and RBAC configuration.
 
 ---
 
@@ -153,7 +155,7 @@ This STP serves as the **overall roadmap for testing**, detailing the scope, app
 #### **1. Scope of Testing**
 
 This STP covers the Dev Preview phase of the File-Level Restore feature for CNV 5.0.
-Testing validates automatic and manual restore modes, Linux and Windows guest support, PVC and
+Testing validates automatic and manual restore modes (with automatic mode as the primary focus), Linux and Windows guest support, PVC and
 VolumeSnapshot source types, error handling and status reporting, resource cleanup, and security
 controls (RBAC, authenticated guest access). Integration with volume attachment, storage provisioning,
 and operator lifecycle management is validated. Disk encryption support (LUKS/BitLocker) is deferred
@@ -167,11 +169,11 @@ to a future release under CNV-89229.
 - [P0] Verify the system correctly detects whether a VM runs Linux or Windows and selects the appropriate restore method
 - [P0] Verify the system reports clear, actionable errors when a restore operation fails at any stage
 - [P0] Verify temporary resources created during restore are cleaned up after the operation completes
-- [P0] Verify guest connection during restore is authenticated and secure
 - [P0] Verify the system rejects invalid restore requests with clear validation errors
-- [P0] Verify end-to-end restore workflow from restore request creation to file verification using the file restore API
+- [P0] Verify file restore on Windows VM completes with NTFS metadata preserved
+- [P0] Verify end-to-end backup vendor integration workflow from restore request creation through file delivery and verification completes successfully
+- [P1] Verify guest connection during restore is authenticated and secure
 - [P1] Verify file restore on Linux VM with ext4 and XFS filesystems preserves file content and handles filesystem-specific constraints
-- [P1] Verify file restore on Windows VM completes with NTFS metadata preserved
 - [P1] Verify the system reports a clear, actionable error when the restore helper is not available in the VM
 - [P1] Verify RBAC controls allow and deny restore operations as expected for different roles (admin, editor, viewer)
 - [P1] Verify the system reports an informative error when the backup source is invalid or corrupted
@@ -182,7 +184,7 @@ to a future release under CNV-89229.
 - [P1] Verify sequential restore operations from the same snapshot complete with proper cleanup between each
 - [P1] Verify the restore status reflects each phase of the operation so that progress can be monitored
 - [P1] Verify temporary resources are cleaned up even when a restore operation fails at any stage
-- [P1] Verify the file restore operator deploys and operates correctly as an HCO-managed component
+- [P1] Verify the file restore operator deploys and operates correctly as a standalone HCO-compliant operator
 - [P2] Verify cross-namespace restore from a volume in a different namespace completes with temporary resources cleaned up after completion
 - [P2] Verify restore succeeds when the source volume's storage mode differs from the cluster default
 - [P2] Verify restore from an LVM-based snapshot handles volume identifier collisions without mount failures
@@ -190,8 +192,9 @@ to a future release under CNV-89229.
 - [P2] Verify paths with formatting variations (trailing slashes, double slashes) are normalized and restore succeeds on Linux (ext4, XFS) and Windows (NTFS) guests
 - [P2] Verify the system handles guest connection loss during file transfer gracefully with partial completion status
 - [P2] Verify operator upgrade preserves existing restore resources and their status
-- [P2] Verify restore operations handle edge cases including large files, root disk snapshots, cross-filesystem constraints, concurrent multi-VM operations, and API server rate-limiting resilience
 - [P2] Verify manual file browsing mode works on a Windows VM with NTFS backup volumes
+- [P2] Verify restore of a large file (1GB) from a data disk snapshot completes successfully
+- [P2] Verify concurrent file restore operations on different VMs complete independently
 
 **Out of Scope (Testing Scope Exclusions)**
 
@@ -265,10 +268,10 @@ No verification activities will be performed for these items, and any related is
   - *Details:* Validate compatibility with KubeVirt DeclarativeHotplugVolumes feature gate. Verify file restore API backward compatibility.
 
 - [x] **Upgrade Testing** — Validates upgrade paths from previous versions, data migration, and configuration preservation
-  - *Details:* Verify operator upgrade preserves existing file restore resources and their status. First release; no prior version to upgrade from, but HCO integration upgrade path must be validated.
+  - *Details:* Verify operator upgrade preserves existing file restore resources and their status. First release; no prior version to upgrade from. No HCO integration in Dev Preview — HCO integration upgrade path will be validated in TP/GA.
 
 - [x] **Dependencies** — Blocked by deliverables from other components/products
-  - *Details:* Depends on HCO team to add file restore operator as an HCO-managed component for downstream delivery (CNV-89642). HCO integration includes operator lifecycle management and certificate rotation.
+  - *Details:* In Dev Preview the operator deploys standalone with HCO-compliant patterns. Full HCO integration — where HCO manages the operator lifecycle — is deferred to TP/GA (CNV-89642). No Dev Preview testing is blocked by HCO team deliverables.
 
 - [x] **Cross Integrations** — Does the feature affect other features or require testing by other teams?
   - *Details:* File restore uses volume hotplug; changes to hotplug admission or lifecycle may affect restore. CDI storage pipeline changes (especially volume mode handling) may affect snapshot-based restore. Backup/DR Vendors will need to validate their integration with the file restore API.
@@ -280,7 +283,7 @@ No verification activities will be performed for these items, and any related is
 
 #### **3. Test Environment**
 
-- **Cluster Topology:** Multi-node (minimum 2 worker nodes)
+- **Cluster Topology:** Single-node or multi-node; no multi-node requirement for file restore
 
 - **OCP & CNV Version(s):** OCP 5.0+ / CNV 5.0+
 
@@ -319,7 +322,6 @@ The following conditions must be met before testing can begin:
 - [x] DeclarativeHotplugVolumes feature gate is enabled in KubeVirt CR
 - [x] Guest helper scripts are available for installation on test VMs (Linux and Windows)
 - [x] VolumeSnapshot-capable StorageClass is configured and functional
-- [ ] HCO integration for downstream delivery is available (CNV-89642)
 
 #### **5. Risks**
 
@@ -341,12 +343,14 @@ The following conditions must be met before testing can begin:
 
 - **Risk:** LVM-backed storage for UUID collision testing may not be available in standard CI environments
   - **Mitigation:** Use dedicated test environment with LVM provisioner or mock the UUID collision scenario at the operator level.
+  - *Missing or unavailable environments:* LVM-backed storage provisioner in standard CI clusters
   - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
 
 **Untestable Aspects**
 
 - **Risk:** Direct integration with third-party Backup/DR Vendors cannot be tested in CI; vendor-specific restore workflows rely on proprietary backup formats
   - **Mitigation:** Test the CRD API surface that vendors integrate with. Validate PVC-based restore path which is the vendor integration point.
+  - *Reason untestable and mitigation approach:* Third-party vendor backup formats are proprietary; tested via CRD API surface and PVC-based restore path
   - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
 
 **Resource Constraints**
@@ -405,8 +409,12 @@ The following conditions must be met before testing can begin:
   - *Priority:* P0
 
 - **[CNV-88322]** — As a VM user, I want the guest connection during restore to be authenticated and secure
-  - *Test Scenario:* [Tier 1] Verify the guest connection during restore is authenticated
-  - *Priority:* P0
+  - *Test Scenario:* [Tier 1] Verify restore fails with a clear error when the SSH key is missing from the guest
+  - *Priority:* P1
+
+- **[CNV-88322]** — As a VM user, I want the guest connection during restore to use a restricted user
+  - *Test Scenario:* [Tier 1] Verify the operator connects as the restricted `filerestore` user, not root
+  - *Priority:* P1
 
 - **[CNV-88322]** — As a VM user, I want the system to reject invalid restore requests with clear validation errors
   - *Test Scenario:* [Tier 1] Verify the system rejects invalid restore requests with clear error messages
@@ -422,11 +430,11 @@ The following conditions must be met before testing can begin:
 
 - **[CNV-88324]** — As a Windows VM user, I want to restore files from a backup volume on NTFS filesystem
   - *Test Scenario:* [Tier 3] Verify file restore on Windows VM from a backup PVC completes successfully with NTFS metadata and ACLs preserved
-  - *Priority:* P1
+  - *Priority:* P0
 
 - **[CNV-88324]** — As a Windows VM user, I want to restore files from a volume snapshot on NTFS filesystem
   - *Test Scenario:* [Tier 3] Verify file restore on Windows VM from a volume snapshot completes successfully with NTFS metadata and ACLs preserved
-  - *Priority:* P1
+  - *Priority:* P0
 
 - **[CNV-88322]** — As a VM user, I want an informative error when restore is attempted on a VM without the restore helper installed
   - *Test Scenario:* [Tier 1] Verify the system reports a clear, actionable error message when the restore helper is not found in the VM
@@ -468,8 +476,8 @@ The following conditions must be met before testing can begin:
   - *Test Scenario:* [Tier 1] Verify cleanup occurs and restore transitions to Failed status when restore encounters an error mid-operation
   - *Priority:* P1
 
-- **[CNV-88321]** — As a cluster admin, I want the file restore operator to be managed by HCO so that it follows the standard operator lifecycle
-  - *Test Scenario:* [Tier 2] Verify the operator deploys and operates correctly under HCO management with proper certificate rotation and TLS configuration
+- **[CNV-88321]** — As a cluster admin, I want the file restore operator to follow the standard operator lifecycle so that it integrates with the platform
+  - *Test Scenario:* [Tier 2] Verify the operator deploys and operates correctly as a standalone HCO-compliant operator with proper lifecycle management
   - *Priority:* P1
 
 - **[CNV-73895]** — As a VM admin, I want to restore files from a backup volume in a different namespace
@@ -506,10 +514,6 @@ The following conditions must be met before testing can begin:
 
 - **[CNV-84209]** — As a VM user, I want to restore files from an LVM-based volume snapshot of the root disk so that I can recover data even when UUID collisions exist
   - *Test Scenario:* [Tier 2] Verify restore succeeds from root disk snapshot with XFS filesystem
-  - *Priority:* P2
-
-- **[CNV-73895]** — As a VM admin, I want the operator to handle rate limiting when polling for volume attachment and SSH connectivity so that the API server is not overloaded
-  - *Test Scenario:* [Tier 1] Verify the operator completes restore operations without triggering API server rate-limiting or excessive retry errors
   - *Priority:* P2
 
 - **[CNV-73895]** — As a VM user, I want to manually browse files from a root disk backup so that I can inspect and selectively restore specific files
