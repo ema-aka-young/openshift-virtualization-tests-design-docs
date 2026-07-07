@@ -404,6 +404,22 @@ The following conditions must be met before testing can begin:
   - *Test Scenario:* [Tier 1] Verify a clear error is reported when file transfer fails during restore
   - *Priority:* P0
 
+- **[CNV-88322]** — As a VM user, I want clear error feedback when the target disk runs out of space during restore
+  - *Test Scenario:* [Tier 1] Verify the system reports a clear error and cleans up when the target disk capacity fills up during file restore
+  - *Priority:* P1
+
+- **[CNV-88322]** — As a VM user, I want clear error feedback when file permissions prevent writing to the target directory
+  - *Test Scenario:* [Tier 1] Verify the system reports a clear error when restored files cannot be written due to incorrect directory permissions on the target
+  - *Priority:* P1
+
+- **[CNV-88322]** — As a VM user, I want the system to handle source volume detachment during an active restore
+  - *Test Scenario:* [Tier 1] Verify the system detects and reports a clear error when the source backup volume is unplugged during an active restore operation
+  - *Priority:* P1
+
+- **[CNV-88322]** — As a VM user, I want the system to handle target volume detachment during an active restore
+  - *Test Scenario:* [Tier 1] Verify the system detects and reports a clear error when the target VM disk is unplugged during an active restore operation
+  - *Priority:* P1
+
 - **[CNV-88322]** — As a VM admin, I want temporary resources cleaned up after a successful restore
   - *Test Scenario:* [Tier 1] Verify all temporary resources created during restore are automatically cleaned up after successful completion
   - *Priority:* P0
