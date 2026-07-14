@@ -166,7 +166,6 @@ to a future release under CNV-89229.
 - [P0] Verify a backup vendor can restore files from a backup volume into a running Linux VM with file integrity preserved (size, ownership, permissions)
 - [P0] Verify a VM user can restore files from a volume snapshot into a running VM without interrupting the VM's availability
 - [P0] Verify manual restore mode provides read-only access to backup contents and the system cleans up when the restore request is removed
-- [P0] Verify the system correctly detects whether a VM runs Linux or Windows and completes the restore using the detected OS settings
 - [P0] Verify the system reports clear, actionable errors when a restore operation fails at any stage
 - [P0] Verify temporary resources created during restore are cleaned up after the operation completes
 - [P0] Verify the system rejects invalid restore requests with clear validation errors
@@ -388,10 +387,6 @@ The following conditions must be met before testing can begin:
   - *Test Scenario:* [Tier 1] Verify backup is made available read-only in the guest, user can copy files interactively, and cleanup occurs when the restore request is removed
   - *Priority:* P0
 
-- **[CNV-88322]** — As a VM user, I want the system to detect my guest OS and complete the restore automatically
-  - *Test Scenario:* [Tier 1] Verify the system detects Linux vs Windows guest and completes the restore using the detected OS settings
-  - *Priority:* P0
-
 - **[CNV-88322]** — As a VM user, I want clear error feedback when a restore fails during volume attachment
   - *Test Scenario:* [Tier 1] Verify a clear error is reported when volume attachment fails during restore
   - *Priority:* P0
@@ -406,10 +401,6 @@ The following conditions must be met before testing can begin:
 
 - **[CNV-88322]** — As a VM user, I want clear error feedback when the target disk runs out of space during restore
   - *Test Scenario:* [Tier 1] Verify the system reports a clear error and cleans up when the target disk capacity fills up during file restore
-  - *Priority:* P1
-
-- **[CNV-88322]** — As a VM user, I want clear error feedback when file permissions prevent writing to the target directory
-  - *Test Scenario:* [Tier 1] Verify the system reports a clear error when restored files cannot be written due to incorrect directory permissions on the target
   - *Priority:* P1
 
 - **[CNV-88322]** — As a VM user, I want the system to handle source volume detachment during an active restore
@@ -552,7 +543,7 @@ This Software Test Plan requires approval from the following stakeholders:
 
 * **Reviewers:**
   - Development Representative (OCP-V): [Arnon Gilboa](@arnongilboa), [Noam Assouline](@noamasu)
-  - QE Members (OCP-V): [Dalia Frank](@dafrank), [Kateryna Shvaika](@kshvaika), [Jose Manuel Castano](@josemacassan), [Ahmad Hafe](@Ahmad-Hafe), [Jenia Peimer](@jpeimer)
+  - QE Members (OCP-V): [Dalia Frank](@dafrank), [Kateryna Shvaika](@kshvaika), [Jose Manuel Castano](@josemacassan), [Ahmad Hafe](@Ahmad-Hafe), [Jenia Peimer](@jpeimer), [Adam Cinko](@acinko)
 * **Approvers:**
   - QE Architect (OCP-V): [Ruth Netser](@rnetser)
   - QE Member (OCP-V): [Jenia Peimer](@jpeimer)
