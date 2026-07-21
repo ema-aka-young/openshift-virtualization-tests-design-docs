@@ -171,6 +171,9 @@ to a future release under CNV-89229.
 - [P0] Verify the system rejects invalid restore requests with clear validation errors
 - [P0] Verify file restore on Windows VM completes with NTFS metadata preserved
 - [P0] Verify end-to-end backup vendor integration workflow from restore request creation through file delivery and verification completes successfully
+- [P0] Verify the restored file count reported in the restore status matches the actual number of files transferred
+- [P0] Verify file restore on Windows VM succeeds when the source file is at a drive root
+- [P1] Verify file restore succeeds for source and target paths containing spaces on Linux
 - [P1] Verify guest connection during restore is authenticated and secure
 - [P1] Verify file restore on Linux VM with ext4 and XFS filesystems preserves file content and handles filesystem-specific constraints
 - [P1] Verify the system reports a clear, actionable error when the restore helper is not available in the VM
@@ -384,7 +387,15 @@ The following conditions must be met before testing can begin:
   - *Priority:* P0
 
 - **[CNV-88322]** — As a VM admin, I want to use manual restore mode to browse and selectively copy files from backup
-  - *Test Scenario:* [Tier 1] Verify backup is made available read-only in the guest, user can copy files interactively, and cleanup occurs when the restore request is removed
+  - *Test Scenario:* [Tier 1] Verify backup is made available read-only in the guest, user can copy files interactively, cleanup occurs when the restore request is removed, and restore status reports no file count
+  - *Priority:* P0
+
+- **[CNV-93089]** — As a VM user, I want the restore status to report the correct number of files transferred on a Linux VM
+  - *Test Scenario:* [Tier 1] Verify the restored file count in the restore status matches the actual number of files transferred on a Linux VM
+  - *Priority:* P0
+
+- **[CNV-93089]** — As a VM user, I want the restore status to report the correct number of files transferred on a Windows VM
+  - *Test Scenario:* [Tier 3] Verify the restored file count in the restore status matches the actual number of files transferred on a Windows VM
   - *Priority:* P0
 
 - **[CNV-88322]** — As a VM user, I want clear error feedback when a restore fails during volume attachment
@@ -399,6 +410,30 @@ The following conditions must be met before testing can begin:
   - *Test Scenario:* [Tier 1] Verify a clear error is reported when file transfer fails during restore
   - *Priority:* P0
 
+- **[CNV-88322]** — As a VM admin, I want temporary resources cleaned up after a successful restore
+  - *Test Scenario:* [Tier 1] Verify all temporary resources created during restore are automatically cleaned up after successful completion
+  - *Priority:* P0
+
+- **[CNV-88322]** — As a VM user, I want the system to reject invalid restore requests with clear validation errors
+  - *Test Scenario:* [Tier 1] Verify the system rejects invalid restore requests with clear error messages
+  - *Priority:* P0
+
+- **[VIRTSTRAT-480]** — As a backup vendor, I want a declarative API for file-level restore so that I can integrate it into my backup product
+  - *Test Scenario:* [Tier 2] Verify end-to-end restore workflow from restore request creation to file verification using the file restore API
+  - *Priority:* P0
+
+- **[CNV-88324]** — As a Windows VM user, I want to restore files from a backup volume on NTFS filesystem
+  - *Test Scenario:* [Tier 3] Verify file restore on Windows VM from a backup PVC completes successfully with NTFS metadata and ACLs preserved
+  - *Priority:* P0
+
+- **[CNV-88324]** — As a Windows VM user, I want to restore files from a volume snapshot on NTFS filesystem
+  - *Test Scenario:* [Tier 3] Verify file restore on Windows VM from a volume snapshot completes successfully with NTFS metadata and ACLs preserved
+  - *Priority:* P0
+
+- **[CNV-93546]** — As a Windows VM user, I want to restore a file located at a drive root
+  - *Test Scenario:* [Tier 3] Verify file restore on Windows VM succeeds when the source file is at a drive root (e.g. E:\file.txt)
+  - *Priority:* P0
+
 - **[CNV-88322]** — As a VM user, I want clear error feedback when the target disk runs out of space during restore
   - *Test Scenario:* [Tier 1] Verify the system reports a clear error and cleans up when the target disk capacity fills up during file restore
   - *Priority:* P1
@@ -411,10 +446,6 @@ The following conditions must be met before testing can begin:
   - *Test Scenario:* [Tier 1] Verify the system detects and reports a clear error when the target VM disk is unplugged during an active restore operation
   - *Priority:* P1
 
-- **[CNV-88322]** — As a VM admin, I want temporary resources cleaned up after a successful restore
-  - *Test Scenario:* [Tier 1] Verify all temporary resources created during restore are automatically cleaned up after successful completion
-  - *Priority:* P0
-
 - **[CNV-88322]** — As a VM user, I want the guest connection during restore to be authenticated and secure
   - *Test Scenario:* [Tier 1] Verify restore fails with a clear error when the SSH key is missing from the guest
   - *Priority:* P1
@@ -423,25 +454,9 @@ The following conditions must be met before testing can begin:
   - *Test Scenario:* [Tier 1] Verify the operator connects as the restricted `filerestore` user, not root
   - *Priority:* P1
 
-- **[CNV-88322]** — As a VM user, I want the system to reject invalid restore requests with clear validation errors
-  - *Test Scenario:* [Tier 1] Verify the system rejects invalid restore requests with clear error messages
-  - *Priority:* P0
-
-- **[VIRTSTRAT-480]** — As a backup vendor, I want a declarative API for file-level restore so that I can integrate it into my backup product
-  - *Test Scenario:* [Tier 2] Verify end-to-end restore workflow from restore request creation to file verification using the file restore API
-  - *Priority:* P0
-
 - **[CNV-88323]** — As a Linux VM user, I want to restore files on ext4 and XFS filesystems with file integrity
   - *Test Scenario:* [Tier 1] Verify file restore on Linux VM with ext4 filesystem preserves file content, and XFS-based restore handles filesystem-specific constraints
   - *Priority:* P1
-
-- **[CNV-88324]** — As a Windows VM user, I want to restore files from a backup volume on NTFS filesystem
-  - *Test Scenario:* [Tier 3] Verify file restore on Windows VM from a backup PVC completes successfully with NTFS metadata and ACLs preserved
-  - *Priority:* P0
-
-- **[CNV-88324]** — As a Windows VM user, I want to restore files from a volume snapshot on NTFS filesystem
-  - *Test Scenario:* [Tier 3] Verify file restore on Windows VM from a volume snapshot completes successfully with NTFS metadata and ACLs preserved
-  - *Priority:* P0
 
 - **[CNV-88322]** — As a VM user, I want an informative error when restore is attempted on a VM without the restore helper installed
   - *Test Scenario:* [Tier 1] Verify the system reports a clear, actionable error message when the restore helper is not found in the VM
@@ -485,6 +500,10 @@ The following conditions must be met before testing can begin:
 
 - **[CNV-88321]** — As a cluster admin, I want the file restore operator to follow the standard operator lifecycle so that it integrates with the platform
   - *Test Scenario:* [Tier 2] Verify the operator deploys and operates correctly as a standalone HCO-compliant operator with proper lifecycle management
+  - *Priority:* P1
+
+- **[CNV-93563]** — As a VM user, I want to restore files from paths containing spaces on a Linux VM
+  - *Test Scenario:* [Tier 1] Verify file restore succeeds when source and target paths contain spaces on a Linux VM
   - *Priority:* P1
 
 - **[CNV-73895]** — As a VM admin, I want to restore files from a backup volume in a different namespace
