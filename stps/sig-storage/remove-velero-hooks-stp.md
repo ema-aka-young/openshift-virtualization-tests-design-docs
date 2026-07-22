@@ -77,7 +77,7 @@ Cluster administrators can now control or disable the automatic Velero pre- and 
   - *Sign-off:* Peter Lauterbach/16-06-2026
 
 - Restoring from a backup taken with hooks disabled (skip-backup-hooks) may produce a VM with filesystem inconsistencies. Without fsfreeze, Velero captures crash-consistent snapshots; restored VMs may have corrupted XFS metadata or 0-byte files (e.g. SSH host keys), making guest agent connectivity and SSH unreliable. This is expected behavior — the annotation is designed for metadata-only workflows or environments where backup vendors handle the freeze themselves.
-  - *Sign-off:* <needs sign-off>
+  - *Sign-off:* Natalie Gavrilov/22-07-2026
 
 #### **3. Technology and Design Review**
 
@@ -270,3 +270,4 @@ This Software Test Plan requires approval from the following stakeholders:
   - QE Architect (OCP-V): [Ruth Netser](@rnetser)
   - QE Member (OCP-V): [Jenia Peimer](@jpeimer)
   - PM: [Peter Lauterbach](@peterclauterbach)
+  - Engineering Manager: [Natalie Gavrilov](@ngavrilo)
