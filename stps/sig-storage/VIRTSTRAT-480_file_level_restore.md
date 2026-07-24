@@ -97,24 +97,24 @@ technology, and testability before formal test planning.
 #### **2. Known Limitations**
 
 - **Backup file browsing is not supported; users must know the path of files to restore**
-  - *PM Sign-off:* [TBD]
+  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **Parallel file restores of the same VM are not supported**
-  - *PM Sign-off:* [TBD]
+  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **Remote storage (S3) source is not supported in Dev Preview; only PVC and VolumeSnapshot sources**
-  - *PM Sign-off:* [TBD]
+  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **The `DeclarativeHotplugVolumes` feature gate must be enabled in KubeVirt for the operator to function**
-  - *PM Sign-off:* [TBD]
+  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **Guest helper script must be pre-installed in the VM; the operator does not install it automatically**
   - Basic setup scripts are provided upstream covering both guest helper installation and SSH configuration with the `filerestore` user.
-  - *PM Sign-off:* [TBD]
+  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **SSH access must be configured on the VM with the `filerestore` user; the operator does not configure guest SSH automatically**
   - See setup scripts above.
-  - *PM Sign-off:* [TBD]
+  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 #### **3. Technology and Design Review**
 
@@ -205,23 +205,23 @@ No verification activities will be performed for these items, and any related is
 
 - **Performance/scale testing**
   - *Rationale:* No performance targets defined for Dev Preview;
-  - *PM/Lead Agreement:* [TBD]
+  - *PM/Lead Agreement:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **Disk encryption (LUKS/BitLocker)**
   - *Rationale:* Encryption support (LUKS for Linux, BitLocker for Windows) is tracked under CNV-89229 for a future release; not in scope for Dev Preview
-  - *PM/Lead Agreement:* [TBD]
+  - *PM/Lead Agreement:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **ARM64 architecture**
   - *Rationale:* Not in scope for initial Dev Preview validation
-  - *PM/Lead Agreement:* [TBD]
+  - *PM/Lead Agreement:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **VSOCK-based guest communication**
   - *Rationale:* Design explored but dropped in favor of SSH over network for Dev Preview
-  - *PM/Lead Agreement:* [TBD]
+  - *PM/Lead Agreement:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **UI testing**
   - *Rationale:* The feature is API-only with no UI components. PM/Lead confirmed no UI coverage is needed based on customer value assessment.
-  - *PM/Lead Agreement:* [TBD]
+  - *PM/Lead Agreement:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 **Test Limitations**
 
