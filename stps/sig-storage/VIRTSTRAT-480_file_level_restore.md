@@ -49,7 +49,7 @@ technology, and testability before formal test planning.
     - [CNV-88323] Linux guest file restore helper (LUKS encryption support deferred to CNV-89229)
     - [CNV-88324] Windows guest file restore helper (BitLocker encryption support deferred to CNV-89229)
     - [CNV-88321] HCO-compliant operator for deploying and managing the file restore controller
-    - [CNV-90086] Source volume mode must be set from snapcontent.sourceVolumeMode to avoid CDI clone failures
+    - [CNV-90086] Source volume mode from the snapshot must be preserved to ensure restore cloning succeeds across storage configurations
     - [CNV-84209] LVM-based volume snapshot restore must handle UUID collisions
 
 - [x] **Understand Value and Customer Use Cases**
@@ -67,8 +67,8 @@ technology, and testability before formal test planning.
 
 - [x] **Acceptance Criteria**
   - *List the acceptance criteria:*
-    - Data protection partners can restore single files or a subset of user data into a VM
-    - Users do not need to restore an entire VM to recover a small set of files
+    - Data protection partners can restore single files or a subset of user data into a VM — after restore, the named files exist at the target path with matching content and size
+    - Users do not need to restore an entire VM to recover a small set of files — a single-file restore completes without stopping, rebooting, or replacing the VM
     - Backup vendor can trigger file-level restore from a backup PVC
     - VM Admin/User can restore specific files/directories from a VolumeSnapshot into a running VM without interrupting the VM's availability — the VM remains network-reachable and guest-responsive throughout the restore operation (no reboot, no pause)
     - Guest OS auto-detection correctly identifies Linux vs Windows and selects appropriate restore method
@@ -91,7 +91,7 @@ technology, and testability before formal test planning.
     - Docs: User-facing documentation for the file restore API and guest helper setup will be validated as part of Dev Preview delivery.
   - *Note any NFRs not covered and why:*
     - Performance: No latency/throughput targets defined for Dev Preview
-    - Scale: No concurrent restore limits defined beyond "parallel restores of same VM not supported"
+    - Scale: No concurrent restore limits defined beyond "parallel restores of same VM not supported." Volume hotplug has existing cluster-level parallelism limits; file restore inherits those constraints.
     - Portability: No cloud-specific requirements for Dev Preview; will be evaluated for TP/GA
 
 #### **2. Known Limitations**
@@ -247,6 +247,9 @@ No verification activities will be performed for these items, and any related is
 - [x] **Regression Testing** — Verifies that new changes do not break existing functionality
   - *Details:* Regression impact analysis identified 3 critical dependency areas: (1) volume hotplug operations, (2) volume lifecycle state management, (3) storage controller allocation. Existing hotplug, provisioning, and volume management test suites provide regression coverage for these integration points.
 
+- [ ] **Self-Validation Testing** — Basic smoke scenarios that confirm the feature works in its primary use case
+  - *Details:* Not checked for Dev Preview. Basic Linux file restore scenarios are covered under Functional Testing (Tier 1). A dedicated self-validation suite may be warranted at TP/GA when the feature stabilizes and a quick-pass gate is needed before broader test execution.
+
 **Non-Functional**
 
 - [ ] **Performance Testing** — Validates feature performance meets requirements (latency, throughput, resource usage)
@@ -359,6 +362,7 @@ The following conditions must be met before testing can begin:
 
 - **Risk:** New standalone operator requires QE ramp-up on vm-file-restore-operator codebase, CRD design, and guest helper scripts
   - **Mitigation:** QE spike (CNV-86827) already completed. Leverage upstream e2e tests as reference for downstream test development.
+  - *Missing resources or infrastructure:* QE bandwidth for ramp-up on new standalone operator, CRD design, and guest helper scripts
   - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
 
 **Dependencies**
@@ -383,7 +387,7 @@ The following conditions must be met before testing can begin:
   - *Priority:* P0
 
 - **[CNV-73895]** — As a VM admin, I want to restore specific files and directories from a volume snapshot into a running VM without disrupting it
-  - *Test Scenario:* [Tier 1] Verify files and directories are restored from a volume snapshot without interrupting VM availability
+  - *Test Scenario:* [Tier 1] Verify files and directories are restored from a volume snapshot while the VM remains reachable — confirm the VM responds to connectivity checks before, during, and after the restore operation completes
   - *Priority:* P0
 
 - **[CNV-88322]** — As a VM admin, I want to use manual restore mode to browse and selectively copy files from backup
@@ -452,6 +456,10 @@ The following conditions must be met before testing can begin:
 
 - **[CNV-88322]** — As a VM user, I want the guest connection during restore to use a restricted user
   - *Test Scenario:* [Tier 1] Verify the operator connects as the restricted `filerestore` user, not root
+  - *Priority:* P1
+
+- **[CNV-88322]** — As a VM user, I want the restore helper to reject malicious input so that command injection is prevented
+  - *Test Scenario:* [Tier 1] Verify restore rejects source paths containing shell metacharacters and the filerestore SSH session cannot execute commands outside the restore helper
   - *Priority:* P1
 
 - **[CNV-88323]** — As a Linux VM user, I want to restore files on ext4 and XFS filesystems with file integrity
@@ -526,8 +534,12 @@ The following conditions must be met before testing can begin:
   - *Test Scenario:* [Tier 3] Verify manual file browsing from backup volume works on a Windows VM with NTFS filesystem
   - *Priority:* P2
 
-- **[CNV-88322]** — As a VM user, I want paths with formatting variations to be normalized correctly before restore
-  - *Test Scenario:* [Tier 1] Verify restore normalizes source and target paths with trailing slashes, double slashes, or relative components and completes successfully
+- **[CNV-88322]** — As a VM user, I want paths with benign formatting variations to be normalized correctly before restore
+  - *Test Scenario:* [Tier 1] Verify restore normalizes source and target paths with trailing slashes and double slashes and completes successfully
+  - *Priority:* P2
+
+- **[CNV-88322]** — As a VM user, I want the restore helper to reject paths containing directory traversal components
+  - *Test Scenario:* [Tier 1] Verify restore rejects source paths containing `../` components and returns a clear error without modifying any files
   - *Priority:* P2
 
 - **[CNV-88322]** — As a VM user, I want the system to handle guest connection loss during file transfer gracefully
