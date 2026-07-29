@@ -186,7 +186,7 @@ to a future release under CNV-89229.
 - [P1] Verify sequential restore operations from the same snapshot complete with proper cleanup between each
 - [P1] Verify the restore status reflects each phase of the operation so that progress can be monitored
 - [P1] Verify temporary resources are cleaned up even when a restore operation fails at any stage
-- [P1] Verify the file restore operator deploys and operates correctly as a standalone HCO-compliant operator
+- [P1] Verify the file restore operator deploys and operates correctly — primary deployment via HCO-managed lifecycle, fallback to direct operator bundle install at test time if HCO integration is not yet available
 - [P2] Verify cross-namespace restore from a volume in a different namespace completes with temporary resources cleaned up after completion
 - [P2] Verify restore succeeds when the source volume's storage mode differs from the cluster default
 - [P2] Verify restore from an LVM-based snapshot handles volume identifier collisions without mount failures
@@ -273,10 +273,10 @@ No verification activities will be performed for these items, and any related is
   - *Details:* Validate compatibility with KubeVirt DeclarativeHotplugVolumes feature gate. Verify file restore API backward compatibility.
 
 - [x] **Upgrade Testing** — Validates upgrade paths from previous versions, data migration, and configuration preservation
-  - *Details:* Verify operator upgrade preserves existing file restore resources and their status. First release; no prior version to upgrade from. No HCO integration in Dev Preview — HCO integration upgrade path will be validated in TP/GA.
+  - *Details:* Verify operator upgrade preserves existing file restore resources and their status. First release; no prior version to upgrade from. HCO integration is targeted for Dev Preview; if unavailable, operator is deployed from its bundle and HCO-managed upgrade paths are deferred to TP/GA.
 
 - [x] **Dependencies** — Blocked by deliverables from other components/products
-  - *Details:* In Dev Preview the operator deploys standalone with HCO-compliant patterns. Full HCO integration — where HCO manages the operator lifecycle — is deferred to TP/GA (CNV-89642). No Dev Preview testing is blocked by HCO team deliverables.
+  - *Details:* HCO integration (CNV-89642) is now targeted for Dev Preview. If HCO-managed deployment is not ready, tests fall back to deploying the operator from its installed bundle at test time. No Dev Preview testing is blocked by this dependency.
 
 - [x] **Cross Integrations** — Does the feature affect other features or require testing by other teams?
   - *Details:* File restore uses volume hotplug; changes to hotplug admission or lifecycle may affect restore. CDI storage pipeline changes (especially volume mode handling) may affect snapshot-based restore. Backup/DR Vendors will need to validate their integration with the file restore API.
@@ -507,7 +507,7 @@ The following conditions must be met before testing can begin:
   - *Priority:* P1
 
 - **[CNV-88321]** — As a cluster admin, I want the file restore operator to follow the standard operator lifecycle so that it integrates with the platform
-  - *Test Scenario:* [Tier 2] Verify the operator deploys and operates correctly as a standalone HCO-compliant operator with proper lifecycle management
+  - *Test Scenario:* [Tier 2] Verify the operator deploys via HCO-managed lifecycle and operates correctly; if HCO is unavailable, verify deployment from the operator bundle succeeds with equivalent functionality
   - *Priority:* P1
 
 - **[CNV-93563]** — As a VM user, I want to restore files from paths containing spaces on a Linux VM
