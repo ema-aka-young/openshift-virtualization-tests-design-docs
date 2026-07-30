@@ -227,16 +227,20 @@ No verification activities will be performed for these items, and any related is
   - *Rationale:* No cloud-specific storage or networking requirements defined for Dev Preview. Cloud compatibility will be evaluated for TP/GA.
   - *PM/Lead Agreement:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
 
+- **Metrics endpoint validation**
+  - *Rationale:* The operator exposes standard reconciliation metrics but no custom alerts or feature-specific metrics are defined for Dev Preview. Metrics endpoint coverage is deferred to TP/GA.
+  - *PM/Lead Agreement:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
+
 **Test Limitations**
 
 - Windows VM testing requires a Windows guest image with SSH support configured; image availability may be limited
-  - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
+  - *Sign-off:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
 
 - LVM-based snapshot testing requires LVM-backed storage provisioner in the test cluster
-  - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
+  - *Sign-off:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
 
 - Guest helper script installation is a manual prerequisite; automated provisioning is not available from the operator, but instrumentation scripts will be provided to assist with installation.
-  - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
+  - *Sign-off:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
 
 #### **2. Test Strategy**
 
