@@ -16,7 +16,7 @@
   - DP: CNV 5.0.0
   - TP: N/A
   - GA: N/A
-- **QE Owner(s):** Emanuele Prella
+- **QE Owner(s):** Emanuele Prella (@ema-aka-young)
 - **Owning SIG:** sig-storage
 - **Participating SIGs:** sig-compute (hotplug integration)
 - **Child STPs:** N/A
@@ -97,24 +97,24 @@ technology, and testability before formal test planning.
 #### **2. Known Limitations**
 
 - **Backup file browsing is not supported; users must know the path of files to restore**
-  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
+  - *Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **Parallel file restores of the same VM are not supported**
-  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
+  - *Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **Remote storage (S3) source is not supported in Dev Preview; only PVC and VolumeSnapshot sources**
-  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
+  - *Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **The `DeclarativeHotplugVolumes` feature gate must be enabled in KubeVirt for the operator to function**
-  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
+  - *Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **Guest helper script must be pre-installed in the VM; the operator does not install it automatically**
   - Basic setup scripts are provided upstream covering both guest helper installation and SSH configuration with the `filerestore` user.
-  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
+  - *Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 - **SSH access must be configured on the VM with the `filerestore` user; the operator does not configure guest SSH automatically**
   - See setup scripts above.
-  - *PM Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
+  - *Sign-off:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
 #### **3. Technology and Design Review**
 
@@ -169,7 +169,7 @@ to a future release under CNV-89229.
 - [P0] Verify the system reports clear, actionable errors when a restore operation fails at any stage
 - [P0] Verify temporary resources created during restore are cleaned up after the operation completes
 - [P0] Verify the system rejects invalid restore requests with clear validation errors
-- [P0] Verify file restore on Windows VM completes with NTFS metadata preserved
+- [P0] Verify file restore on Windows VM completes with NTFS metadata and ACLs preserved
 - [P0] Verify end-to-end backup vendor integration workflow from restore request creation through file delivery and verification completes successfully
 - [P0] Verify the restored file count reported in the restore status matches the actual number of files transferred
 - [P0] Verify file restore on Windows VM succeeds when the source file is at a drive root
@@ -223,6 +223,10 @@ No verification activities will be performed for these items, and any related is
   - *Rationale:* The feature is API-only with no UI components. PM/Lead confirmed no UI coverage is needed based on customer value assessment.
   - *PM/Lead Agreement:* [Peter Lauterbach](@peterclauterbach)/24-07-2026
 
+- **Cloud/multi-cloud platform testing**
+  - *Rationale:* No cloud-specific storage or networking requirements defined for Dev Preview. Cloud compatibility will be evaluated for TP/GA.
+  - *PM/Lead Agreement:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
+
 **Test Limitations**
 
 - Windows VM testing requires a Windows guest image with SSH support configured; image availability may be limited
@@ -265,7 +269,7 @@ No verification activities will be performed for these items, and any related is
   - *Details:* No UI required per feature specification. Validate that restore status provides clear feedback about operation progress and outcome. Verify error messages are informative when guest helper is missing or guest connection fails.
 
 - [x] **Monitoring** — Does the feature require metrics and/or alerts?
-  - *Details:* Operator exposes standard reconciliation metrics via secure endpoint. No custom alerts or feature-specific metrics defined for Dev Preview. Metrics endpoint accessibility will be validated.
+  - *Details:* Operator exposes standard reconciliation metrics via secure endpoint. No custom alerts or feature-specific metrics defined for Dev Preview. No metrics validation planned for Dev Preview — metrics endpoint coverage deferred to TP/GA.
 
 **Integration & Compatibility**
 
@@ -335,48 +339,48 @@ The following conditions must be met before testing can begin:
 - **Risk:** Dev Preview implementation stories (CNV-88322, CNV-88323, CNV-88324) are still in progress; test automation (CNV-90681) has not started
   - **Mitigation:** Align test development with implementation milestones. Start test framework setup and stub generation in parallel with ongoing development.
   - *Estimated impact on schedule:* Possible delay if implementation stories extend
-  - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
+  - *Sign-off:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
 
 **Test Coverage**
 
 - **Risk:** Windows guest testing may have limited coverage due to image availability and configuration complexity
   - **Mitigation:** Prioritize Linux guest testing for Dev Preview. Establish Windows test VM image with SSH pre-configured.
   - *Areas with reduced coverage:* Windows guest restore
-  - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
+  - *Sign-off:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
 
 **Test Environment**
 
 - **Risk:** LVM-backed storage for UUID collision testing may not be available in standard CI environments
   - **Mitigation:** Use dedicated test environment with LVM provisioner or mock the UUID collision scenario at the operator level.
   - *Missing or unavailable environments:* LVM-backed storage provisioner in standard CI clusters
-  - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
+  - *Sign-off:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
 
 **Untestable Aspects**
 
 - **Risk:** Direct integration with third-party Backup/DR Vendors cannot be tested in CI; vendor-specific restore workflows rely on proprietary backup formats
   - **Mitigation:** Test the CRD API surface that vendors integrate with. Validate PVC-based restore path which is the vendor integration point.
   - *Reason untestable and mitigation approach:* Third-party vendor backup formats are proprietary; tested via CRD API surface and PVC-based restore path
-  - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
+  - *Sign-off:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
 
 **Resource Constraints**
 
 - **Risk:** New standalone operator requires QE ramp-up on vm-file-restore-operator codebase, CRD design, and guest helper scripts
   - **Mitigation:** QE spike (CNV-86827) already completed. Leverage upstream e2e tests as reference for downstream test development.
   - *Missing resources or infrastructure:* QE bandwidth for ramp-up on new standalone operator, CRD design, and guest helper scripts
-  - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
+  - *Sign-off:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
 
 **Dependencies**
 
 - **Risk:** Feature depends on KubeVirt DeclarativeHotplugVolumes feature gate and CDI DataVolume pipeline; changes in either could break file restore
   - **Mitigation:** Monitor KubeVirt and CDI upstream for breaking changes. Include integration regression tests in CI.
   - *Dependent teams or components:* KubeVirt core (hotplug), CDI (DataVolume), HCO (operator lifecycle)
-  - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
+  - *Sign-off:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
 
 **Other**
 
 - **Risk:** VEP review feedback from a Backup/DR Vendor indicated PVC-based restore adds an "unnecessary extra hop" compared to direct guest file API similar to a Virtualization Infrastructure Vendor Guest Operations API. This may lead to API redesign in future phases.
   - **Mitigation:** Dev Preview scope is limited to PVC/VolumeSnapshot sources. Monitor vendor feedback for TP/GA scope adjustments.
-  - *Sign-off:* [Emanuele Prella](@ema-aka-young)/30-06-2026
+  - *Sign-off:* [Natalie Gavrilov](@ngavrilo)/30-07-2026
 
 ---
 
@@ -459,7 +463,7 @@ The following conditions must be met before testing can begin:
   - *Priority:* P1
 
 - **[CNV-88322]** — As a VM user, I want the restore helper to reject malicious input so that command injection is prevented
-  - *Test Scenario:* [Tier 1] Verify restore rejects source paths containing shell metacharacters and the filerestore SSH session cannot execute commands outside the restore helper
+  - *Test Scenario:* [Tier 1] Verify the file restore helper cannot be exploited for command injection
   - *Priority:* P1
 
 - **[CNV-88323]** — As a Linux VM user, I want to restore files on ext4 and XFS filesystems with file integrity
@@ -475,11 +479,14 @@ The following conditions must be met before testing can begin:
   - *Priority:* P1
 
 - **[CNV-88322]** — As a VM user, I want a clear error when the backup source is invalid or corrupted
-  - *Test Scenario:* [Tier 1] Verify the system reports an informative error when the backup volume is empty, contains corrupted data, or the specified source path does not exist
+  - *Test Scenario:* [Tier 1] Verify the system reports an informative error when the specified source path does not exist in the backup volume
+  - *Test Scenario:* [Tier 1] Verify the system reports an informative error when the backup volume is empty or contains corrupted data
   - *Priority:* P1
 
 - **[CNV-88322]** — As a VM user, I want a clear error when restore is attempted on a VM that is not running or does not exist
-  - *Test Scenario:* [Tier 1] Verify the system reports an informative error when file restore is attempted on a stopped, migrating, or non-existent VM
+  - *Test Scenario:* [Tier 1] Verify the system reports an informative error when file restore is attempted on a stopped VM
+  - *Test Scenario:* [Tier 1] Verify the system reports an informative error when file restore is attempted on a migrating VM
+  - *Test Scenario:* [Tier 1] Verify the system reports an informative error when file restore is attempted on a non-existent VM
   - *Priority:* P1
 
 - **[CNV-88322]** — As a VM admin, I want the system to handle cleanup failures gracefully and avoid resource leaks
@@ -574,8 +581,10 @@ This Software Test Plan requires approval from the following stakeholders:
 
 * **Reviewers:**
   - Development Representative (OCP-V): [Arnon Gilboa](@arnongilboa), [Noam Assouline](@noamasu)
+  - Engineering Manager (OCP-V): [Natalie Gavrilov](@ngavrilo)
   - QE Members (OCP-V): [Dalia Frank](@dafrank), [Kateryna Shvaika](@kshvaika), [Jose Manuel Castano](@josemacassan), [Ahmad Hafe](@Ahmad-Hafe), [Jenia Peimer](@jpeimer), [Adam Cinko](@acinko)
 * **Approvers:**
   - QE Architect (OCP-V): [Ruth Netser](@rnetser)
   - QE Member (OCP-V): [Jenia Peimer](@jpeimer)
   - PM: [Peter Lauterbach](@peterclauterbach)
+  - Dev Lead (OCP-V): [Arnon Gilboa](@arnongilboa)
