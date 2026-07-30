@@ -266,6 +266,13 @@ Example: Strategy says "Performance testing is applicable — we will measure mi
 - [ ] **Regression Testing** — Verifies that new changes do not break existing functionality
   - *Details:* [ Add details ]
 
+- [ ] **Self-Validation Testing** — Should any of the new tests be included in the self-validation test package?
+  <!-- The self-validation package is a curated subset of tests that run as product health checks.
+  Consider whether any new test scenarios validate core feature functionality that should
+  be part of self-validation. Self-validation tests should be fast, reliable, and cover
+  critical operational scenarios. -->
+  - *Details:* [ Add details ]
+
 **Non-Functional**
 
 - [ ] **Performance Testing** — Validates feature performance meets requirements (latency, throughput, resource usage)
@@ -452,6 +459,10 @@ justification in mitigation strategy. -->
   - *Test Scenario:* [Tier 2] Verify upgrade from version X to Y preserves feature state
   - *Priority:* P2
 
+- **[Jira-127]** — As a Windows VM user...
+  - *Test Scenario:* [Tier 3] Verify feature X works on Windows guest with NTFS filesystem
+  - *Priority:* P1
+
 ---
 
 ### **IV. Sign-off and Approval**
@@ -459,8 +470,10 @@ justification in mitigation strategy. -->
 This Software Test Plan requires approval from the following stakeholders:
 
 * **Reviewers:**
-  - [Name / @github-username]
-  - [Name / @github-username]
+  - QE: [Name / @github-handle]
+  - Development: [Name / @github-handle]
+  - [Additional reviewers as needed]
 * **Approvers:**
-  - [Name / @github-username]
-  - [Name / @github-username]
+  - QE Lead: [Name / @github-handle]
+  - Dev Lead: [Name / @github-handle]
+  - Product Manager: [Name / @github-handle]
